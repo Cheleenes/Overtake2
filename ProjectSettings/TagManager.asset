@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Cell
   - BodyPart
+  - TeamManager
   layers:
   - Default
   - TransparentFX
