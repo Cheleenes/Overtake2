@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &4433356314402648394
+--- !u!1 &242763237338580067
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,43 +8,56 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3706678558225847569}
-  - component: {fileID: 6998269894440427184}
+  - component: {fileID: 6671626497123963805}
+  - component: {fileID: 8879361713770328951}
+  - component: {fileID: 1413707237}
   m_Layer: 0
-  m_Name: NetworkTeam
-  m_TagString: Untagged
+  m_Name: TeamManager
+  m_TagString: TeamManager
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3706678558225847569
+--- !u!4 &6671626497123963805
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4433356314402648394}
+  m_GameObject: {fileID: 242763237338580067}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.8877985, y: 0.5156276, z: 0.87462914}
+  m_LocalPosition: {x: -2.072703, y: -0.073194146, z: -1.6575606}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6998269894440427184
+--- !u!114 &8879361713770328951
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4433356314402648394}
+  m_GameObject: {fileID: 242763237338580067}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a11634b9f486af448e5c22e1c830fd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1413707237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 242763237338580067}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   NetworkInstanceId: 0
-  PrefabHash: 8502846115699477226
-  PrefabHashGenerator: Team
+  PrefabHash: 7205834663626856703
+  PrefabHashGenerator: TeamManager
   AlwaysReplicateAsRoot: 0
   DontDestroyWithOwner: 0

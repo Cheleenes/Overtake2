@@ -98,6 +98,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6961fc082b749c41b191635b0268215, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetGO_: {fileID: 0}
+  hasPulse_:
+    m_InternalValue: 0
 --- !u!58 &95798990385631210
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -143,12 +146,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FixedSendsPerSecond: 20
+  FixedSendsPerSecond: 40
   AssumeSyncedSends: 1
   InterpolatePosition: 1
   SnapDistance: 10
   InterpolateServer: 1
-  MinMeters: 0.15
+  MinMeters: 0.001
   MinDegrees: 1.5
   ExtrapolatePosition: 0
   MaxSendsToExtrapolate: 5

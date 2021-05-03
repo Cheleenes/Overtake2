@@ -23,7 +23,7 @@ public class NetworkToTargetState : INetworkTentacleState
         nextPartDistance_ = headDistance_ - bodyPartRadius_;
         headPart_ = tentacle.Head_.GetComponent<NetworkTentaclePart>();
         targetCell_ = target_.GetComponent<NetworkCell>();
-        if (NetworkCell.AreAlly(tentacle_.ParentCell_, targetCell_))
+        if (NetworkCell.AreAlly(tentacle_.ParentCell_, targetCell_, tentacle_.ParentCell_.TeamManager_))
         {
             foreach (NetworkTentacle targetTentacle in targetCell_.Tentacles_)
             {

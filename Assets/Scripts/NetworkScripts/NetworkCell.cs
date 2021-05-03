@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 using MLAPI;
+using MLAPI.NetworkVariable;
+using MLAPI.Messaging;
 
 public class NetworkCell : NetworkBehaviour
 {
+    static List<NetworkCell> cells_ = new List<NetworkCell>();
     int cellId_;
-    int currentHealth_;
+    //int currentHealth_;
+    private NetworkVariableInt currentHealth_ = new NetworkVariableInt();
     int maxHealth_;
     int healthToConvet_;
     static float regenInterval_ = 2f;
@@ -15,25 +19,32 @@ public class NetworkCell : NetworkBehaviour
     float pulseTime_;
     float pulseInterval_;
     List<NetworkTentacle> tentacles_;
+    NetworkTeamManager teamManager_;
     NetworkTeam capturingTeam_;
     NetworkTeam myTeam_;
     public List<GameObject> targets_;
     public GameObject textPrefab_;
     public GameObject canvasPrefab_;
     public GameObject tentaclePrefab_;
-    public int CurrentHealth_ { get => currentHealth_; set => currentHealth_ = value; }
+    public int CurrentHealth_ { get => currentHealth_.Value; set => currentHealth_.Value = value; }
     public List<GameObject> Targets_ { get => targets_; }
     public List<NetworkTentacle> Tentacles_ { get => tentacles_; }
     public NetworkTeam MyTeam_ { get => myTeam_; }
+    public int CellId_ { get => cellId_; }
+    public NetworkTeamManager TeamManager_ { get => teamManager_; }
 
-    public bool isNeutral_;
+    //public bool isNeutral_;
+    public NetworkVariableBool isNeutral_ = new NetworkVariableBool();
     SpriteRenderer spr_;
+    public NetworkVariableColor myColor_ = new NetworkVariableColor();
 
-    public void Initialize(int cellId, int initialHealth, int maxHealth, int pulse)
+
+    public void InitializeServer(int cellId, int initialHealth, int maxHealth, int pulse)
     {
+        cells_.Add(this);
         gameObject.name = "Cell " + cellId;
         cellId_ = cellId;
-        currentHealth_ = initialHealth;
+        currentHealth_.Value = initialHealth;
         maxHealth_ = maxHealth;
         healthToConvet_ = maxHealth / 3;
         pulse_ = pulse;
@@ -43,35 +54,42 @@ public class NetworkCell : NetworkBehaviour
         pulseInterval_ = 1f;
         targets_ = new List<GameObject>();
         spr_ = GetComponent<SpriteRenderer>();
-        isNeutral_ = false;
-        if (NetworkTeam.GetTeamId(this) != -1)
+        teamManager_ = GameObject.FindGameObjectWithTag("TeamManager").GetComponent<NetworkTeamManager>();
+        isNeutral_.Value = false;
+        if (teamManager_.GetTeamId(this) != -1)
         {
             //spr_.color = Team.teamColors[Team.GetTeamId(this)];
-            myTeam_ = NetworkTeam.GetTeam(this);
+            myTeam_ = teamManager_.GetTeam(this);
         }
         else
         {
-            isNeutral_ = true;
-            currentHealth_ = 0;
+            isNeutral_.Value = true;
+            currentHealth_.Value = 0;
         }
-        spr_.color = NetworkTeam.teamColors[NetworkTeam.GetTeamId(this)];
-        if (!isNeutral_)
+        myColor_.Value = teamManager_.teamColors[teamManager_.GetTeamId(this)];
+        if (!isNeutral_.Value)
             CreateHealthUI();
     }
     // Start is called before the first frame update
     void Start()
     {
-
+        if (NetworkManager.Singleton.IsClient)
+        {
+            spr_ = GetComponent<SpriteRenderer>();
+            spr_.color = myColor_.Value;
+            CreateHealthUI();
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!isNeutral_)
+        if (!isNeutral_.Value && NetworkManager.Singleton.IsServer)
         {
             Pulse();
             RegenHealth();
         }
+        spr_.color = myColor_.Value;
     }
     void CreateHealthUI()
     {
@@ -90,7 +108,7 @@ public class NetworkCell : NetworkBehaviour
             }
             pulseTime_ = 0;
         }
-        pulseInterval_ = 1.2f - (float)currentHealth_ / maxHealth_;
+        pulseInterval_ = 1.2f - (float)currentHealth_.Value / maxHealth_;
     }
 
     private void PulseNow()
@@ -104,19 +122,31 @@ public class NetworkCell : NetworkBehaviour
     private void RegenHealth()
     {
         regenTime_ += Time.deltaTime;
-        if (currentHealth_ < maxHealth_ && regenTime_ >= regenInterval_)
+        if (currentHealth_.Value < maxHealth_ && regenTime_ >= regenInterval_)
         {
             regenTime_ = 0;
-            currentHealth_ += 1;
+            currentHealth_.Value += 1;
         }
     }
-
-
+    [ServerRpc]
+    public void AttackCellServerRpc(int targetCellId)
+    {
+        AttackCell(GetCell(targetCellId).gameObject);
+    }
+    static NetworkCell GetCell(int cellId)
+    {
+        foreach(NetworkCell cell in cells_)
+        {
+            if (cell.CellId_ == cellId)
+                return cell;
+        }
+        return null;
+    }
     public void AttackCell(GameObject target)
     {
         if (!targets_.Contains(target) && IsTentacleReady())
         {
-            Debug.Log("Cell " + cellId_ + " is now attacking " + target.name);
+            Debug.Log("Cell " + CellId_ + " is now attacking " + target.name);
             SpawnTentacle(target);
             targets_.Add(target);
         }
@@ -140,65 +170,65 @@ public class NetworkCell : NetworkBehaviour
     }
     public void RecievePulse(int pulseVal, NetworkTentacle tentacle)
     {
-        if (!isNeutral_)
+        if (!isNeutral_.Value)
         {
-            if (AreAlly(this, tentacle.ParentCell_))
+            if (AreAlly(this, tentacle.ParentCell_, teamManager_))
             {
-                if (currentHealth_ < maxHealth_)
-                    currentHealth_ += pulseVal;
+                if (currentHealth_.Value < maxHealth_)
+                    currentHealth_.Value += pulseVal;
                 else
                 {
                     PulseNow();
-                    currentHealth_ = maxHealth_;
+                    currentHealth_.Value = maxHealth_;
                 }
             }
             else
             {
-                currentHealth_ -= pulseVal;
-                if (currentHealth_ == 0)
+                currentHealth_.Value -= pulseVal;
+                if (currentHealth_.Value == 0)
                 {
-                    NetworkTeam.ConvertCell(tentacle.ParentCell_, this);
-                    spr_.color = NetworkTeam.teamColors[NetworkTeam.GetTeamId(this)];
+                    teamManager_.ConvertCell(tentacle.ParentCell_, this);
+                    myColor_.Value = teamManager_.teamColors[teamManager_.GetTeamId(this)];
                 }
             }
         }
 
-        if (isNeutral_)
+        if (isNeutral_.Value)
         {
             if (capturingTeam_ == null)
             {
-                capturingTeam_ = NetworkTeam.GetTeam(tentacle.ParentCell_);
-                currentHealth_ += pulseVal;
+                capturingTeam_ = teamManager_.GetTeam(tentacle.ParentCell_);
+                currentHealth_.Value += pulseVal;
             }
             else if (capturingTeam_ == tentacle.ParentCell_.MyTeam_)
             {
-                currentHealth_ += pulseVal;
-                if (currentHealth_ == healthToConvet_)
+                currentHealth_.Value += pulseVal;
+                if (currentHealth_.Value == healthToConvet_)
                 {
                     //convert to normal cell
-                    NetworkTeam.ConvertCell(tentacle.ParentCell_, this);
-                    spr_.color = NetworkTeam.teamColors[NetworkTeam.GetTeamId(this)];
-                    isNeutral_ = false;
+                    teamManager_.ConvertCell(tentacle.ParentCell_, this);
+                    myColor_.Value = teamManager_.teamColors[teamManager_.GetTeamId(this)];
+                    isNeutral_.Value = false;
                     myTeam_ = tentacle.ParentCell_.MyTeam_;
                     CreateHealthUI();
                 }
             }
             else
             {
-                currentHealth_ -= pulseVal;
-                if (currentHealth_ == 0)
+                currentHealth_.Value -= pulseVal;
+                if (currentHealth_.Value == 0)
                 {
                     capturingTeam_ = tentacle.ParentCell_.MyTeam_;
                 }
             }
 
-            spr_.color = Color.Lerp(Color.gray, NetworkTeam.teamColors[capturingTeam_.TeamId_], (float)currentHealth_ / healthToConvet_);
+            myColor_.Value = Color.Lerp(Color.gray, teamManager_.teamColors[capturingTeam_.TeamId_], (float)currentHealth_.Value / healthToConvet_);
         }
     }
 
-    public static bool AreAlly(NetworkCell cell1, NetworkCell cell2)
+    public static bool AreAlly(NetworkCell cell1, NetworkCell cell2, NetworkTeamManager teamManager)
     {
-        foreach (NetworkTeam team in NetworkTeam.teams_)
+        foreach (NetworkTeam team in teamManager.teams_)
         {
             if (team.HasCell_(cell1) && team.HasCell_(cell2))
             {
@@ -219,11 +249,11 @@ public class NetworkCell : NetworkBehaviour
 
     bool IsTentacleReady()
     {
-        if (currentHealth_ < 15 && tentacles_.Count < 1)
+        if (currentHealth_.Value < 15 && tentacles_.Count < 1)
             return true;
-        if (currentHealth_ >= 15 && currentHealth_ < 50 && tentacles_.Count < 2)
+        if (currentHealth_.Value >= 15 && currentHealth_.Value < 50 && tentacles_.Count < 2)
             return true;
-        if (currentHealth_ >= 50 && tentacles_.Count < 3)
+        if (currentHealth_.Value >= 50 && tentacles_.Count < 3)
             return true;
         return false;
     }

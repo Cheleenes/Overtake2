@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using MLAPI;
+using MLAPI.NetworkVariable;
 
 public class NetworkPlayer : NetworkBehaviour
 {
@@ -14,8 +15,10 @@ public class NetworkPlayer : NetworkBehaviour
     int playerId_;
     GameObject fromCellGO_;
     GameObject toCellGO_;
+    NetworkTeamManager teamManager_;
     PlayerState state_;
-    NetworkTeam myTeam_;
+    //NetworkTeam myTeam_;
+    public NetworkVariable<NetworkTeam> myTeam_ = new NetworkVariable<NetworkTeam>(new NetworkVariableSettings { WritePermission = NetworkVariablePermission.Everyone });
 
     public PlayerState State_ { get => state_; }
 
@@ -24,11 +27,21 @@ public class NetworkPlayer : NetworkBehaviour
     {
         playerId_ = playerId;
         state_ = PlayerState.Empty;
-        myTeam_ = myTeam;
+        myTeam_.Value = myTeam;
+    }
+
+    public void InitializeClient(int playreId, NetworkTeam myTeam)
+    {      
+        state_ = PlayerState.Empty;
+        myTeam_.Value = myTeam;
     }
     void Start()
     {
-
+        if (!NetworkManager.Singleton.IsServer)
+        {
+            teamManager_ = GameObject.FindGameObjectWithTag("TeamManager").GetComponent<NetworkTeamManager>();
+            InitializeClient((int)NetworkManager.Singleton.LocalClientId, teamManager_.teams_[2]);
+        }
     }
 
     // Update is called once per frame
@@ -50,7 +63,7 @@ public class NetworkPlayer : NetworkBehaviour
                         RaycastHit2D hitInfo = Physics2D.Raycast(ray, Vector2.zero);
                         if (hitInfo)
                         {
-                            if (hitInfo.collider.gameObject.tag == "Cell" && myTeam_.HasCell_(hitInfo.collider.gameObject.GetComponent<NetworkCell>()))
+                            if (hitInfo.collider.gameObject.tag == "Cell" && myTeam_.Value.HasCell_(hitInfo.collider.gameObject.GetComponent<NetworkCell>()))
                             {
                                 state_ = PlayerState.FromSelected;
                                 fromCellGO_ = hitInfo.collider.gameObject;
@@ -75,7 +88,10 @@ public class NetworkPlayer : NetworkBehaviour
                         {
                             state_ = PlayerState.Empty;
                             toCellGO_ = hitInfo.collider.gameObject;
-                            fromCellGO_.GetComponent<NetworkCell>().AttackCell(toCellGO_);
+                            if(NetworkManager.Singleton.IsServer)
+                                fromCellGO_.GetComponent<NetworkCell>().AttackCell(toCellGO_);
+                            else
+                                fromCellGO_.GetComponent<NetworkCell>().AttackCellServerRpc(toCellGO_.GetComponent<NetworkCell>().CellId_);
                             fromCellGO_ = null;
                             toCellGO_ = null;
                         }
@@ -98,7 +114,7 @@ public class NetworkPlayer : NetworkBehaviour
                         RaycastHit2D hitInfo = Physics2D.Raycast(ray, Vector2.zero);
                         if (hitInfo)
                         {
-                            if (hitInfo.collider.gameObject.tag == "BodyPart" && myTeam_.HasCell_(hitInfo.collider.gameObject.GetComponentInParent<NetworkTentacle>().ParentCell_))
+                            if (hitInfo.collider.gameObject.tag == "BodyPart" && myTeam_.Value.HasCell_(hitInfo.collider.gameObject.GetComponentInParent<NetworkTentacle>().ParentCell_))
                             {
                                 hitInfo.collider.gameObject.GetComponentInParent<NetworkTentacle>().GetCut(hitInfo.collider.gameObject);
                             }

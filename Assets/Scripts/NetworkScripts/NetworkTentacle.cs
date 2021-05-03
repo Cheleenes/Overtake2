@@ -57,21 +57,24 @@ public class NetworkTentacle : NetworkBehaviour
     // Update is called once per frame
     void Update()
     {
-        INetworkTentacleState state = state_.ChangeState(this, target_);
-        if (state != null)
+        if (NetworkManager.Singleton.IsServer)
         {
-            if (state.GetType() != state_.GetType())
+            INetworkTentacleState state = state_.ChangeState(this, target_);
+            if (state != null)
             {
-                Debug.Log(parentCell_.gameObject.name + ", Tentacle " + tentacleId_ + " has changed its state from " + state_.GetType() + " to " + state.GetType());
-                if (state is NetworkDeadState)
+                if (state.GetType() != state_.GetType())
                 {
-                    parentCell_.RemoveTentacle(this);
+                    Debug.Log(parentCell_.gameObject.name + ", Tentacle " + tentacleId_ + " has changed its state from " + state_.GetType() + " to " + state.GetType());
+                    if (state is NetworkDeadState)
+                    {
+                        parentCell_.RemoveTentacle(this);
+                    }
                 }
+                state_ = null;
+                state_ = state;
             }
-            state_ = null;
-            state_ = state;
+            state_.DoStateAction(this);
         }
-        state_.DoStateAction(this);
     }
 
     public void SendPulse(int pulse)
