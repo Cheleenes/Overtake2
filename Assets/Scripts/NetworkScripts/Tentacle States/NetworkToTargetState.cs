@@ -36,20 +36,21 @@ public class NetworkToTargetState : INetworkTentacleState
     }
     public INetworkTentacleState ChangeState(NetworkTentacle tentacle, GameObject gameObject)
     {
-        if (tentacle.ParentCellCurrentHealth <= 0 || tentacle.gotCut_)//TODO: isDefending is not enough to know wether the tentacle should expant or contract, need a better solution
+        if (tentacle.ParentCellCurrentHealth <= 0 || tentacle.gotCut_)
         {
             return new NetworkToParentState(tentacle.Target_, tentacle);
         }
-        if (headPart_.atDestination)
+        Vector3 auxPox = Vector3.MoveTowards(headPart_.targetGO_.transform.position, headPart_.parentTentacle_.transform.position, 0.2f);
+        if (headPart_.transform.position == auxPox || headPart_.transform.position == headPart_.targetGO_.transform.position) //headPart_.atDestination)
         {
             return new NetworkAtTargetState(tentacle.Target_, tentacle_);
         }
         if (tentacle.IsDefending_())
         {
             float distanceFromHeadToParent = Vector3.Distance(tentacle_.Head_.transform.position, tentacle_.transform.position);
-            Vector3 middlePoint = (tentacle_.transform.position + tentacle_.Target_.transform.position) / 2;
+            Vector3 middlePoint = Vector3.MoveTowards(tentacle_.Target_.transform.position, tentacle_.transform.position, Vector3.Distance(tentacle_.transform.position, tentacle_.Target_.transform.position) / 2);
             float distanceFromMiddleToParent = Vector3.Distance(middlePoint, tentacle_.transform.position);
-            if (distanceFromHeadToParent >= distanceFromMiddleToParent)
+            if (distanceFromHeadToParent > distanceFromMiddleToParent)
             {
                 return new NetworkToParentState(tentacle.Target_, tentacle);
             }
@@ -80,14 +81,15 @@ public class NetworkToTargetState : INetworkTentacleState
                 NetworkTentaclePart part = bodyPart.GetComponent<NetworkTentaclePart>();
                 if (!part.atDestination)
                 {
-                    if (part.BodyPartId_ == 0 && tentacle_.IsDefending_())
+                    if (part.IsHead_ && tentacle_.IsDefending_())
                     {
                         if (middleGO_ == null)
                         {
                             Vector3 midlePos = Vector3.MoveTowards(part.targetGO_.transform.position, tentacle_.transform.position, Vector3.Distance(tentacle_.transform.position, part.targetGO_.transform.position) / 2);
-                            midlePos = Vector3.MoveTowards(midlePos, tentacle_.Target_.transform.position, 0.1f);
+                            midlePos = Vector3.MoveTowards(midlePos, tentacle_.transform.position, 0.1f);
                             middleGO_ = new GameObject();
                             middleGO_.transform.position = midlePos;
+                            Debug.Log("Middle position: " + midlePos);
                             part.targetGO_ = middleGO_;
                         }
                         part.transform.position = Vector3.MoveTowards(part.transform.position, part.targetGO_.transform.position, NetworkTentacle.travelSpeed_ * Time.deltaTime);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using MLAPI;
 using MLAPI.NetworkVariable.Collections;
+using MLAPI.Messaging;
 
 public class NetworkTeamManager : NetworkBehaviour
 {
@@ -50,6 +51,16 @@ public class NetworkTeamManager : NetworkBehaviour
         }
         teamPrey.RemoveCell(prey.gameObject);
         teamAttacker.AddCell(prey.gameObject);
+        ConvertCellClientRpc(teamPrey.TeamCellsArray_, teams_.IndexOf(teamPrey));
+        ConvertCellClientRpc(teamAttacker.TeamCellsArray_, teams_.IndexOf(teamAttacker));
         prey.RetreatAllTentacles();
+    }
+    [ClientRpc]
+    void ConvertCellClientRpc(int[] newTeamCellArray, int teamIndex)
+    {
+        teams_[teamIndex].TeamCellsArray_ = newTeamCellArray;
+        NetworkPlayer myPlayer = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.gameObject.GetComponent<NetworkPlayer>();
+        if(myPlayer.myTeam_.Value.TeamId_ == teams_[teamIndex].TeamId_)
+            NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.gameObject.GetComponent<NetworkPlayer>().SetTeam(teams_[teamIndex]);
     }
 }

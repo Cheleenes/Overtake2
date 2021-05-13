@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using MLAPI;
-
+using MLAPI.Messaging;
 public class NetworkTentacle : NetworkBehaviour
 {
     public static float travelSpeed_ = 2f;
@@ -26,7 +26,7 @@ public class NetworkTentacle : NetworkBehaviour
         foreach (GameObject cellGO in parentCell_.Targets_)
         {
             NetworkCell cell = cellGO.GetComponent<NetworkCell>();
-            if (cell.Targets_.Contains(parentCell_.gameObject))
+            if (cell.Targets_.Contains(parentCell_.gameObject) && target_ == cellGO)
             {
                 return true;
             }
@@ -42,7 +42,7 @@ public class NetworkTentacle : NetworkBehaviour
         target_ = target;
         bodyParts_ = new List<GameObject>();
         GameObject bodyPartGO = GameObject.Instantiate(bodyPartPrefab_, transform);
-        bodyPartGO.GetComponent<NetworkTentaclePart>().Initialize(bodyPartCount_, target_);
+        bodyPartGO.GetComponent<NetworkTentaclePart>().Initialize(bodyPartCount_, target_, true);
         bodyPartGO.GetComponent<NetworkObject>().Spawn();
         bodyParts_.Add(bodyPartGO);
         parentCell_ = GetComponentInParent<NetworkCell>();
@@ -51,7 +51,10 @@ public class NetworkTentacle : NetworkBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+        if(NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
+        {
+            parentCell_ = GetComponentInParent<NetworkCell>();
+        }
     }
 
     // Update is called once per frame
@@ -91,11 +94,11 @@ public class NetworkTentacle : NetworkBehaviour
         GameObject bodyPart = GameObject.Instantiate(bodyPartPrefab_, transform);
         if (bodyPartCount_ == 0)
         {
-            bodyPart.GetComponent<NetworkTentaclePart>().Initialize(bodyPartCount_ + 1, target_);
+            bodyPart.GetComponent<NetworkTentaclePart>().Initialize(bodyPartCount_ + 1, target_, true);
         }
         else
         {
-            bodyPart.GetComponent<NetworkTentaclePart>().Initialize(bodyPartCount_, bodyParts_[bodyPartCount_ - 1]);
+            bodyPart.GetComponent<NetworkTentaclePart>().Initialize(bodyPartCount_, bodyParts_[bodyPartCount_ - 1], false);
         }
         bodyPart.GetComponent<NetworkObject>().Spawn();
         bodyParts_.Add(bodyPart);
@@ -111,6 +114,26 @@ public class NetworkTentacle : NetworkBehaviour
     {
         gotCut_ = true;
         cutOrigin_ = cutOrigin;
+    }
+    [ServerRpc(RequireOwnership = false)]
+    public void GetCutServerRpc(int cutOriginId)
+    {
+        GetCutFromClient(cutOriginId);
+    }
+    public void GetCutFromClient(int cutOriginId)
+    {
+        gotCut_ = true;
+        cutOrigin_ = getBodyPartGO(cutOriginId);
+    }
+    public GameObject getBodyPartGO(int bodyPartId)
+    {
+        NetworkTentaclePart[] parts = GetComponentsInChildren<NetworkTentaclePart>();
+        for (int i = 0; i < parts.Length; i++)
+        {
+            if (bodyPartId == parts[i].BodyPartId_)
+                return parts[i].gameObject;
+        }
+        return null;
     }
     public void InjectPart(GameObject bodyPartGO)
     {

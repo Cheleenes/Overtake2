@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 95798990385631210}
   - component: {fileID: 9165038612895708076}
   - component: {fileID: 8184750778470244626}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: NetworkTentaclePart
   m_TagString: BodyPart
   m_Icon: {fileID: 0}
@@ -98,9 +98,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6961fc082b749c41b191635b0268215, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  bodyPartId_:
+    m_InternalValue: 0
   targetGO_: {fileID: 0}
   hasPulse_:
     m_InternalValue: 0
+  parentTentacle_: {fileID: 0}
 --- !u!58 &95798990385631210
 CircleCollider2D:
   m_ObjectHideFlags: 0

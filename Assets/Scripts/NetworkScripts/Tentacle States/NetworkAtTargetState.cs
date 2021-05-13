@@ -18,7 +18,7 @@ public class NetworkAtTargetState : INetworkTentacleState
         target_ = target;
         bodyPartRadius_ = 0.2f;
         pulseTime_ = 0;
-        pulseHoldTime_ = 0.03f;
+        pulseHoldTime_ = 0.08f;
         tentacleHead_ = tentacle.Head_.GetComponent<NetworkTentaclePart>();
         atCell_ = tentacleHead_.targetGO_.GetComponent<NetworkCell>() != null;
         targetCell_ = target.GetComponent<NetworkCell>();

@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 7473304061992587656}
   - component: {fileID: 2716136346313569334}
   - component: {fileID: 6492971752763301581}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: NetworkCell
   m_TagString: Cell
   m_Icon: {fileID: 0}
@@ -111,7 +111,10 @@ MonoBehaviour:
   textPrefab_: {fileID: 2452944274172089662, guid: 1ddb3af242c1d7c43af64a168e408a12, type: 3}
   canvasPrefab_: {fileID: 81120073065001645, guid: 85a87e4488c990f4b92ceb819622494e, type: 3}
   tentaclePrefab_: {fileID: 1964277165212914052, guid: 90f400a592987dd4fab415d1a4e7950b, type: 3}
-  isNeutral_: 0
+  isNeutral_:
+    m_InternalValue: 0
+  myColor_:
+    m_InternalValue: {r: 0, g: 0, b: 0, a: 0}
 --- !u!58 &7473304061992587656
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -127,7 +130,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.8
+  m_Radius: 0.52
 --- !u!114 &2716136346313569334
 MonoBehaviour:
   m_ObjectHideFlags: 0

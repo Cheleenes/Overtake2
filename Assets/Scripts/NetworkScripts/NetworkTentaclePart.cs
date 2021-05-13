@@ -7,39 +7,43 @@ using System;
 
 public class NetworkTentaclePart : NetworkBehaviour
 {
-    int bodyPartId_;
+    static int Ids_ = 0;
+    //int bodyPartId_;
+    public NetworkVariableInt bodyPartId_ = new NetworkVariableInt();
     public GameObject targetGO_;
     NetworkTentaclePart nextPart_;
     //private bool hasPulse_;
     public NetworkVariableBool hasPulse_ = new NetworkVariableBool();
-    NetworkTentacle parentTentacle_;
+    public NetworkTentacle parentTentacle_;
     SpriteRenderer spr_;
     int pulseVal_;
+    bool isHead_;
 
     public bool atDestination { get => transform.position == Vector3.MoveTowards(targetGO_.transform.position, parentTentacle_.transform.position, 0.2f); }
     public GameObject TargetGO { get => targetGO_; set => targetGO_ = value; }
     public bool HasPulse_ { get => hasPulse_.Value; set => hasPulse_.Value = value; }
-    public int BodyPartId_ { get => bodyPartId_; }
+    public int BodyPartId_ { get => bodyPartId_.Value; }
+    public bool IsHead_ { get => isHead_; }
 
-    
-
-    public void Initialize(int bodyPartId, GameObject targetGO)
+    public void Initialize(int bodyPartId, GameObject targetGO, bool isHead)
     {
         gameObject.name = "Body part " + bodyPartId;
-        bodyPartId_ = bodyPartId;
+        bodyPartId_.Value = Ids_++;//bodyPartId;
         targetGO_ = targetGO;
         if (bodyPartId != 0)
             nextPart_ = targetGO_.GetComponent<NetworkTentaclePart>();
         parentTentacle_ = GetComponentInParent<NetworkTentacle>();
         hasPulse_.Value = false;
         spr_ = GetComponent<SpriteRenderer>();
+        isHead_ = isHead;
     }
     // Start is called before the first frame update
     void Start()
     {
-        if (NetworkManager.Singleton.IsClient)
+        if (NetworkManager.Singleton.IsClient && !NetworkManager.Singleton.IsServer)
         {
             spr_ = GetComponent<SpriteRenderer>();
+            parentTentacle_ = GetComponentInParent<NetworkTentacle>();
         }
     }
 
@@ -48,8 +52,8 @@ public class NetworkTentaclePart : NetworkBehaviour
     {
         if (NetworkManager.Singleton.IsClient)
         {
-            if(hasPulse_.Value)
-                spr_.color = Color.blue;
+            if (hasPulse_.Value)
+                spr_.color = parentTentacle_.ParentCell_.myColor_.Value;
             else
                 spr_.color = Color.white;
         }
@@ -59,7 +63,7 @@ public class NetworkTentaclePart : NetworkBehaviour
     {
         pulseVal_ = pulse;
         hasPulse_.Value = true;
-        spr_.color = Color.blue;
+        spr_.color = parentTentacle_.ParentCell_.myColor_.Value;
     }
 
     public void SendPulse()

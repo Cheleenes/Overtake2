@@ -11,6 +11,7 @@ public class NetworkToParentState : INetworkTentacleState
 {
     public GameObject target_;
     public NetworkTentacle tentacle_;
+    public NetworkTentaclePart headPart_;
     float travelTime_;
     float travelSpeed_;
     NetworkToParentSubState state_;
@@ -20,6 +21,7 @@ public class NetworkToParentState : INetworkTentacleState
         target_ = target;
         tentacle_ = tentacle;
         travelSpeed_ = 0.001f;
+        headPart_ = tentacle.Head_.GetComponent<NetworkTentaclePart>();
         if (tentacle_.ParentCellCurrentHealth == 0 || tentacle_.gotCut_)
         {
             state_ = NetworkToParentSubState.totalReturn;
@@ -32,7 +34,8 @@ public class NetworkToParentState : INetworkTentacleState
     }
     public INetworkTentacleState ChangeState(NetworkTentacle tentacle, GameObject gameObject)
     {
-        if (state_ == NetworkToParentSubState.partialReturn && tentacle_.Head_.GetComponent<NetworkTentaclePart>().atDestination)
+        Vector3 auxPox = Vector3.MoveTowards(headPart_.targetGO_.transform.position, headPart_.parentTentacle_.transform.position, 0.2f);
+        if (state_ == NetworkToParentSubState.partialReturn && (headPart_.transform.position == auxPox || headPart_.transform.position == headPart_.targetGO_.transform.position))
         {
             return new NetworkAtTargetState(tentacle.Target_, tentacle);
         }
@@ -76,16 +79,16 @@ public class NetworkToParentState : INetworkTentacleState
             foreach (GameObject bodyPartGO in tentacle_.BodyParts_)
             {
                 NetworkTentaclePart bodyPart = bodyPartGO.GetComponent<NetworkTentaclePart>();
-                if (middleGO_ == null && bodyPart.BodyPartId_ == 0)
+                if (middleGO_ == null && bodyPart.IsHead_)
                 {
                     Vector3 midlePos = Vector3.MoveTowards(bodyPart.targetGO_.transform.position, tentacle_.transform.position, Vector3.Distance(tentacle_.transform.position, bodyPart.targetGO_.transform.position) / 2);
-                    midlePos = Vector3.MoveTowards(midlePos, tentacle_.Target_.transform.position, -0.3f);
+                    midlePos = Vector3.MoveTowards(midlePos, tentacle_.transform.position, 0.1f);
                     middleGO_ = new GameObject();
                     middleGO_.transform.position = midlePos;
                     bodyPart.targetGO_ = middleGO_;
                     headPart = bodyPart;
                 }
-                if (bodyPart.BodyPartId_ == 0 && !bodyPart.atDestination)
+                if (bodyPart.IsHead_ && !bodyPart.atDestination)
                 {
                     /*Vector3 middlePoint = Vector3.MoveTowards(bodyPart.targetGO_.transform.position, tentacle_.transform.position, Vector3.Distance(bodyPart.targetGO_.transform.position, tentacle_.transform.position) / 2);
                     bodyPart.transform.position = Vector3.MoveTowards(bodyPart.transform.position, middlePoint, 0.01f);*/
