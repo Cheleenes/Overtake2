@@ -29,13 +29,14 @@ public class NetworkCell : NetworkBehaviour
     public GameObject textPrefab_;
     public GameObject canvasPrefab_;
     public GameObject tentaclePrefab_;
+    CircleCollider2D cc2d_;
     public int CurrentHealth_ { get => currentHealth_.Value; set => currentHealth_.Value = value; }
     public List<GameObject> Targets_ { get => targets_; }
     public List<NetworkTentacle> Tentacles_ { get => tentacles_; }
     public NetworkTeam MyTeam_ { get => myTeam_; }
     public int CellId_ { get => cellId_.Value; }
     public NetworkTeamManager TeamManager_ { get => teamManager_; }
-
+    public float MyRadius_ { get => cc2d_.radius; }
     //public bool isNeutral_;
     public NetworkVariableBool isNeutral_ = new NetworkVariableBool();
     SpriteRenderer spr_;
@@ -63,6 +64,7 @@ public class NetworkCell : NetworkBehaviour
         spr_ = GetComponent<SpriteRenderer>();
         teamManager_ = GameObject.FindGameObjectWithTag("TeamManager").GetComponent<NetworkTeamManager>();
         isNeutral_.Value = false;
+        cc2d_ = GetComponent<CircleCollider2D>();
 
         if(myTeam_.TeamId_ == -1)
         {
@@ -166,6 +168,7 @@ public class NetworkCell : NetworkBehaviour
     private void SpawnTentacle(GameObject target)
     {
         GameObject tentacleGO = GameObject.Instantiate(tentaclePrefab_, transform);
+        tentacleGO.transform.position = Vector2.MoveTowards(transform.position, target.transform.position, cc2d_.radius);
         NetworkTentacle tentacle = tentacleGO.GetComponent<NetworkTentacle>();
         tentacleGO.GetComponent<NetworkObject>().Spawn();
         tentacles_.Add(tentacle);

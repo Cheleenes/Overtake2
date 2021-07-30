@@ -44,6 +44,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c877f8c6581ee8443b1d07b243d0db67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  justMe_:
+    serializedVersion: 2
+    m_Bits: 0
+  fromCellGO_: {fileID: 0}
+  toCellGO_: {fileID: 0}
+  cellMarker_: {fileID: 7151863280560171620, guid: 9f3c7cc06bf41bc49bb9dea5a0f91353, type: 3}
+  state_: 0
 --- !u!114 &1814319679517432614
 MonoBehaviour:
   m_ObjectHideFlags: 0

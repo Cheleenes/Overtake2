@@ -7,6 +7,7 @@ TagManager:
   - Cell
   - BodyPart
   - TeamManager
+  - CellMarker1
   layers:
   - Default
   - TransparentFX

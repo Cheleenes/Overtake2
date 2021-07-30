@@ -16,6 +16,7 @@ public class NetworkPlayer : NetworkBehaviour
     public LayerMask justMe_;
     public GameObject fromCellGO_;
     public GameObject toCellGO_;
+    public GameObject cellMarker_;
     NetworkTeamManager teamManager_;
     public PlayerState state_;
     public NetworkVariable<NetworkTeam> myTeam_ = new NetworkVariable<NetworkTeam>(new NetworkVariableSettings { WritePermission = NetworkVariablePermission.Everyone });
@@ -39,10 +40,16 @@ public class NetworkPlayer : NetworkBehaviour
     }
     void Start()
     {
+        if (!cellMarker_)
+            cellMarker_ = GameObject.FindGameObjectWithTag("CellMarker1");
+        if(NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].ClientId == gameObject.GetComponent<NetworkObject>().OwnerClientId)
+            FindObjectOfType<DragLine>().SetPlayer(this);
+
         if (!NetworkManager.Singleton.IsServer && NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].ClientId == gameObject.GetComponent<NetworkObject>().OwnerClientId)
         {
             teamManager_ = GameObject.FindGameObjectWithTag("TeamManager").GetComponent<NetworkTeamManager>();
             InitializeClient((int)NetworkManager.Singleton.LocalClientId, teamManager_.teams_[2]);
+            
         }
     }
 
@@ -51,9 +58,15 @@ public class NetworkPlayer : NetworkBehaviour
     {
         if (NetworkManager.Singleton.IsClient && NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].ClientId == gameObject.GetComponent<NetworkObject>().OwnerClientId)
         {
-            //TouchControllers();
-            MouseControllers();
+            if(Application.isEditor)
+                MouseControllers();
+            else
+                TouchControllers();
         }
+        if (fromCellGO_)
+            cellMarker_.transform.position = fromCellGO_.transform.position;
+        else
+            cellMarker_.transform.position = new Vector3(-2.36648989f, -10.1519661f, 0);
     }
 
     void TouchControllers()

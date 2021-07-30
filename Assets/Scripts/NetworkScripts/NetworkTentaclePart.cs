@@ -19,7 +19,19 @@ public class NetworkTentaclePart : NetworkBehaviour
     int pulseVal_;
     bool isHead_;
 
-    public bool atDestination { get => transform.position == Vector3.MoveTowards(targetGO_.transform.position, parentTentacle_.transform.position, 0.2f); }
+    public bool atDestination { get
+        {
+            if (IsHead_)
+            {
+                Vector3 targetPos = Vector3.MoveTowards(targetGO_.transform.position, parentTentacle_.transform.position, parentTentacle_.Target_.GetComponent<CircleCollider2D>().radius);
+                return transform.position == targetPos;
+            }
+            else
+            {
+                return transform.position == Vector3.MoveTowards(targetGO_.transform.position, parentTentacle_.transform.position, 0.2f);
+            }
+        }
+    }
     public GameObject TargetGO { get => targetGO_; set => targetGO_ = value; }
     public bool HasPulse_ { get => hasPulse_.Value; set => hasPulse_.Value = value; }
     public int BodyPartId_ { get => bodyPartId_.Value; }
