@@ -29,19 +29,11 @@ public class DragLine : MonoBehaviour
                     break;
 
                 case NetworkPlayer.PlayerState.FromSelected:
-                    if (player_.toCellGO_ != null)
-                    {
-                        linePoint0_ = player_.fromCellGO_.transform.position;
-                        linePoint1_ = player_.toCellGO_.transform.position;
-                    }
+                    linePoint0_ = player_.fromCellGO_.transform.position;
+                    if (Application.isEditor)
+                        linePoint1_ = new Vector3(Camera.main.ScreenToWorldPoint(Input.mousePosition).x, Camera.main.ScreenToWorldPoint(Input.mousePosition).y, 0);
                     else
-                    {
-                        linePoint0_ = player_.fromCellGO_.transform.position;
-                        if (Application.isEditor)
-                            linePoint1_ = new Vector3(Camera.main.ScreenToWorldPoint(Input.mousePosition).x, Camera.main.ScreenToWorldPoint(Input.mousePosition).y, 0);
-                        else
-                            linePoint1_ = new Vector3(Camera.main.ScreenToWorldPoint(Input.GetTouch(0).position).x, Camera.main.ScreenToWorldPoint(Input.GetTouch(0).position).y, 0);
-                    }
+                        linePoint1_ = new Vector3(Camera.main.ScreenToWorldPoint(Input.GetTouch(0).position).x, Camera.main.ScreenToWorldPoint(Input.GetTouch(0).position).y, 0);
                     break;
             }
         }

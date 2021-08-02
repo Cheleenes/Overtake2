@@ -42,8 +42,12 @@ public class NetworkPlayer : NetworkBehaviour
     {
         if (!cellMarker_)
             cellMarker_ = GameObject.FindGameObjectWithTag("CellMarker1");
-        if(NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].ClientId == gameObject.GetComponent<NetworkObject>().OwnerClientId)
+        if (NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].ClientId == gameObject.GetComponent<NetworkObject>().OwnerClientId)
+        {
             FindObjectOfType<DragLine>().SetPlayer(this);
+            FindObjectOfType<CellMarkerFom>().SetPlayer(this);
+            FindObjectOfType<CellMarkerTo>().SetPlayer(this);
+        }
 
         if (!NetworkManager.Singleton.IsServer && NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].ClientId == gameObject.GetComponent<NetworkObject>().OwnerClientId)
         {

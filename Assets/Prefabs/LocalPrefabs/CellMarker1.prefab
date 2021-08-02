@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8708253653427043638}
   - component: {fileID: 6705227839204274494}
+  - component: {fileID: 3685205902523120375}
   m_Layer: 0
   m_Name: CellMarker1
   m_TagString: CellMarker1
@@ -82,3 +83,16 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &3685205902523120375
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7151863280560171620}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5969742dd1bc714782ad3d1fb5caabe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player_: {fileID: 0}
